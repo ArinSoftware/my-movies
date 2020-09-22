@@ -2,8 +2,9 @@ import React from 'react';
 import MovieList from './MovieList';
 import SearchBar from './SearchBar';
 import AddMovie from './AddMovie';
+import EditMovie from './EditMovie';
 import axios from 'axios';
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
 class App extends React.Component {
 
@@ -18,7 +19,7 @@ class App extends React.Component {
     }
 
 
-    // AXIOS API
+    // DELETE MOVIE
     deleteMovie =  async (movie) => {
 
         axios.delete(`http://localhost:3002/movies/${movie.id}`)
@@ -31,9 +32,18 @@ class App extends React.Component {
     } 
 
     
-
+    // SEARCH MOVIE
     searchMovie = (event) => {
         this.setState({searchQuery: event.target.value })
+    }
+
+
+    // ADD MOVIE
+    addMovie = async (movie) => {
+        await axios.post(`http://localhost:3002/movies/`, movie)
+        this.setState( state => ( {
+            movies:state.movies.concat([movie])
+        }))
     }
 
     render() {
@@ -42,7 +52,9 @@ class App extends React.Component {
             (movie) => {
                 return movie.name.toLowerCase().indexOf(this.state.searchQuery.toLowerCase()) !== -1
             }
-        )
+        ).sort( (a, b) => {
+            return a.id < b.id ? 1 : a.id > b.id ? -1 : 0;
+        });
 
         return (
             <Router>
@@ -52,7 +64,6 @@ class App extends React.Component {
                     <Switch>
 
                         
-
                         <Route path="/" exact render={() => (
                             <React.Fragment>
                                 <div className="row">
@@ -72,7 +83,22 @@ class App extends React.Component {
 
                         </Route>
 
-                        <Route path="/add" component={AddMovie} />
+                        <Route path="/add" render={({history}) => (
+
+                            <AddMovie 
+
+                            onAddMovie = {(movie) => {this.addMovie(movie)
+                                history.push("/")
+                            }
+                        }
+                            
+                            />
+
+                        )}>
+
+                        </Route>
+
+                        <Route path="/edit/:id" component={EditMovie} />
 
                         
                     </Switch>
